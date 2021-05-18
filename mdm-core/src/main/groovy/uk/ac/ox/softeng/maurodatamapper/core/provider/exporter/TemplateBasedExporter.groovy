@@ -18,6 +18,7 @@
 package uk.ac.ox.softeng.maurodatamapper.core.provider.exporter
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
+import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
 import grails.views.ResolvableGroovyTemplateEngine
 import groovy.text.Template
@@ -36,6 +37,7 @@ trait TemplateBasedExporter {
     }
 
     ByteArrayOutputStream exportModel(ExportModel exportModel, String format) {
+        log.debug('Exporting model using template')
         Template template = templateEngine.resolveTemplate(exportViewPath)
 
         if (!template) {
@@ -43,11 +45,17 @@ trait TemplateBasedExporter {
             throw new ApiInternalException('TBE02', "Could not find template for format ${format} at path ${exportViewPath}")
         }
 
+        long start = System.currentTimeMillis()
         def writable = template.make(exportModel: exportModel)
+        log.debug('Making template took {}', Utils.timeTaken(start))
+        start = System.currentTimeMillis()
         def sw = new StringWriter()
         writable.writeTo(sw)
+        log.debug('Writing template took {}', Utils.timeTaken(start))
+        start = System.currentTimeMillis()
         ByteArrayOutputStream os = new ByteArrayOutputStream()
         os.write(sw.toString().bytes)
+        log.debug('Outputting template took {}', Utils.timeTaken(start))
         os
     }
 }

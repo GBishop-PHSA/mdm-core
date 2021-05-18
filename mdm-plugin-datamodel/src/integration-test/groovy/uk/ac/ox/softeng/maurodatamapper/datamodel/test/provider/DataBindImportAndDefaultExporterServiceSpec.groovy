@@ -28,6 +28,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.provider.importer.parameter.Da
 import grails.gorm.transactions.Rollback
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Stepwise
 import spock.lang.Unroll
@@ -277,6 +278,30 @@ abstract class DataBindImportAndDefaultExporterServiceSpec<I extends DataBindDat
 
         then:
         diff.objectsAreIdentical()
+    }
+
+    @Ignore('not really testing anything')
+    void 'test performance'() {
+        given:
+        setupData()
+        Path testFilePath = resourcesPath.resolve("${COMPLETE_DATAMODEL_EXPORT_FILENAME}.${getExporterService().version}.$importType")
+
+        String content = Files.readString(testFilePath)
+            .replaceAll(/"lastUpdated": "\$\{json-unit\.matches:offsetDateTime}"/, '')
+            .replaceAll(/"id": "\$\{json-unit.ignore}",/, '')
+
+        DataModel dm = importAndConfirm(content.bytes)
+        assert dm, 'Must have a datamodel imported to be able to export'
+
+        when:
+            long start = System.currentTimeMillis()
+            exportModel(dm.id)
+            long time = System.currentTimeMillis() - start
+
+
+        then:
+        log.warn('time : {}',time)
+        time < 300
     }
 
 }

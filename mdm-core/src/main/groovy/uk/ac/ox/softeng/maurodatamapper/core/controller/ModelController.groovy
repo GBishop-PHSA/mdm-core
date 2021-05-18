@@ -460,9 +460,10 @@ abstract class ModelController<T extends Model> extends CatalogueItemController<
         T instance = queryForResource params[alternateParamsIdKey]
 
         if (!instance) return notFound(params.dataModelId)
+        long start = System.currentTimeMillis()
         log.info("Exporting Model using ${exporter.displayName}")
         ByteArrayOutputStream outputStream = exporterService.exportDomain(currentUser, exporter, params[alternateParamsIdKey] as String)
-        log.info('Export complete')
+        log.info('Export complete in {}', Utils.timeTaken(start))
         if (!outputStream) {
             return errorResponse(UNPROCESSABLE_ENTITY, 'Model could not be exported')
         }
