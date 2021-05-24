@@ -61,8 +61,6 @@ class BootstrapModels {
                 log.debug("creating test classifier simple")
                 classifier = new Classifier(createdBy: DEVELOPMENT, label: 'test classifier simple', readableByAuthenticatedUsers: true)
                 checkAndSave(messageSource, classifier)
-            } else {
-                log.debug("test classifier simple already exists")
             }
             simpleDataModel.addToClassifiers(classifier)
             checkAndSave(messageSource, simpleDataModel)
