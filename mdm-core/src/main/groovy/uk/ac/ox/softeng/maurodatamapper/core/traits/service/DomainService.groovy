@@ -18,7 +18,7 @@
 package uk.ac.ox.softeng.maurodatamapper.core.traits.service
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
-import uk.ac.ox.softeng.maurodatamapper.traits.domain.CreatorAware
+import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
 import grails.core.GrailsApplication
@@ -28,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired
 
 import java.lang.reflect.ParameterizedType
 
-trait DomainService<K extends CreatorAware> {
+trait DomainService<K extends MdmDomain> {
 
     @Autowired
     GrailsApplication grailsApplication
@@ -77,7 +77,7 @@ trait DomainService<K extends CreatorAware> {
     }
 
     boolean handlesPathPrefix(String pathPrefix) {
-        (getDomainClass().getDeclaredConstructor().newInstance() as CreatorAware).pathPrefix == pathPrefix
+        (getDomainClass().getDeclaredConstructor().newInstance() as MdmDomain).pathPrefix == pathPrefix
     }
 
     abstract K findByParentIdAndPathIdentifier(UUID parentId, String pathIdentifier)

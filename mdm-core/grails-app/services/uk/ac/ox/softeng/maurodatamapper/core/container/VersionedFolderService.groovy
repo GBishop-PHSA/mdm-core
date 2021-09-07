@@ -58,7 +58,7 @@ import uk.ac.ox.softeng.maurodatamapper.path.PathNode
 import uk.ac.ox.softeng.maurodatamapper.security.SecurityPolicyManagerService
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManager
-import uk.ac.ox.softeng.maurodatamapper.traits.domain.CreatorAware
+import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
 import uk.ac.ox.softeng.maurodatamapper.version.Version
 import uk.ac.ox.softeng.maurodatamapper.version.VersionChangeType
@@ -808,9 +808,9 @@ class VersionedFolderService extends ContainerService<VersionedFolder> implement
     void processCreationPatchIntoVersionedFolder(FieldPatchData creationPatch, VersionedFolder targetVersionedFolder,
                                                  VersionedFolder sourceVersionedFolder,
                                                  UserSecurityPolicyManager userSecurityPolicyManager) {
-        CreatorAware domainInTarget = pathService.findResourceByPathFromRootResource(targetVersionedFolder, creationPatch.relativePathToRoot,
-                                                                                     getModelIdentifier(targetVersionedFolder))
-        CreatorAware domainToCopy = domainInTarget ?: pathService.findResourceByPathFromRootResource(sourceVersionedFolder, creationPatch.path)
+        MdmDomain domainInTarget = pathService.findResourceByPathFromRootResource(targetVersionedFolder, creationPatch.relativePathToRoot,
+                                                                                  getModelIdentifier(targetVersionedFolder))
+        MdmDomain domainToCopy = domainInTarget ?: pathService.findResourceByPathFromRootResource(sourceVersionedFolder, creationPatch.path)
         if (!domainToCopy) {
             log.warn('Could not process creation patch into versioned folder at path [{}] as no such path exists in the source', creationPatch.path)
             return
@@ -835,7 +835,7 @@ class VersionedFolderService extends ContainerService<VersionedFolder> implement
     }
 
     void processDeletionPatchIntoVersionedFolder(FieldPatchData deletionPatch, VersionedFolder targetVersionedFolder) {
-        CreatorAware domain =
+        MdmDomain domain =
             pathService.findResourceByPathFromRootResource(targetVersionedFolder, deletionPatch.relativePathToRoot,
                                                            getModelIdentifier(targetVersionedFolder))
         if (!domain) {
@@ -861,7 +861,7 @@ class VersionedFolderService extends ContainerService<VersionedFolder> implement
     }
 
     void processModificationPatchIntoVersionedFolder(FieldPatchData modificationPatch, VersionedFolder targetVersionedFolder) {
-        CreatorAware domain =
+        MdmDomain domain =
             pathService.findResourceByPathFromRootResource(targetVersionedFolder, modificationPatch.relativePathToRoot,
                                                            getModelIdentifier(targetVersionedFolder))
         if (!domain) {
