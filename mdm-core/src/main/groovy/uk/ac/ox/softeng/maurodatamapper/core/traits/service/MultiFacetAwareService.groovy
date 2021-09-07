@@ -42,7 +42,7 @@ import org.hibernate.SessionFactory
 /**
  * @since 17/03/2021
  */
-@SelfType(DomainService)
+@SelfType(MdmDomainService)
 @Slf4j
 trait MultiFacetAwareService<K extends MultiFacetAware> {
 

@@ -28,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired
 
 import java.lang.reflect.ParameterizedType
 
-trait DomainService<K extends MdmDomain> {
+trait MdmDomainService<K extends MdmDomain> {
 
     @Autowired
     GrailsApplication grailsApplication
