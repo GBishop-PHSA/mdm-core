@@ -135,11 +135,6 @@ class ReferenceTypeService extends ModelItemService<ReferenceType> implements Su
     }
 
     @Override
-    Class<ReferenceType> getModelItemClass() {
-        ReferenceType
-    }
-
-    @Override
     Boolean shouldPerformSearchForTreeTypeCatalogueItems(String domainType) {
         domainType == ReferenceType.simpleName
     }

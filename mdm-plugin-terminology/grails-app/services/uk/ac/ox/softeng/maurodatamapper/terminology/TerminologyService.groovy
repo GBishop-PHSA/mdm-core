@@ -472,11 +472,6 @@ class TerminologyService extends ModelService<Terminology> {
     }
 
     @Override
-    Class<Terminology> getModelClass() {
-        Terminology
-    }
-
-    @Override
     List<Terminology> findAllByContainerId(UUID containerId) {
         // We do not concern ourselves any other types of containers for Terminologys at this time
         findAllByFolderId(containerId)

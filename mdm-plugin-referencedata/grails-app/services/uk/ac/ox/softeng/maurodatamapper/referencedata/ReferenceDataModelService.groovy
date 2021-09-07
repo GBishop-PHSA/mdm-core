@@ -579,11 +579,6 @@ class ReferenceDataModelService extends ModelService<ReferenceDataModel> impleme
     }
 
     @Override
-    Class<ReferenceDataModel> getModelClass() {
-        ReferenceDataModel
-    }
-
-    @Override
     List<ReferenceDataModel> findAllByContainerId(UUID containerId) {
         // We do not concern ourselves any other types of containers for DataModels at this time
         findAllByFolderId(containerId)

@@ -80,11 +80,6 @@ class ReferenceEnumerationValueService extends ModelItemService<ReferenceEnumera
     }
 
     @Override
-    Class<ReferenceEnumerationValue> getModelItemClass() {
-        ReferenceEnumerationValue
-    }
-
-    @Override
     Boolean shouldPerformSearchForTreeTypeCatalogueItems(String domainType) {
         domainType == ReferenceEnumerationValue.simpleName
     }

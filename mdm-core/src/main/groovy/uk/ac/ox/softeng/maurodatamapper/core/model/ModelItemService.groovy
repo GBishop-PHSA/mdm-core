@@ -35,15 +35,8 @@ abstract class ModelItemService<K extends ModelItem> extends CatalogueItemServic
     @Autowired(required = false)
     List<ModelItemService> modelItemServices
 
-    @Override
-    Class<K> getCatalogueItemClass() {
-        return getModelItemClass()
-    }
-
-    abstract Class<K> getModelItemClass()
-
     void deleteAllByModelId(UUID modelId) {
-        throw new ApiNotYetImplementedException('MIS01', "deleteAllByModelId for ${getModelItemClass().simpleName}")
+        throw new ApiNotYetImplementedException('MIS01', "deleteAllByModelId for ${getDomainClass().simpleName}")
     }
 
     @Deprecated
@@ -53,13 +46,15 @@ abstract class ModelItemService<K extends ModelItem> extends CatalogueItemServic
 
     @Deprecated
     K copy(Model copiedModelInto, K original, UUID nonModelParentId, UserSecurityPolicyManager userSecurityPolicyManager) {
-        throw new ApiNotYetImplementedException('MIS03', "copy [for ModelItem ${getModelItemClass().simpleName}] (with parent id)")
+        throw new ApiNotYetImplementedException('MIS03', "copy [for ModelItem ${getDomainClass().simpleName}] (with parent id)")
     }
+
 
     K copy(Model copiedModelInto, K original, CatalogueItem nonModelParent, UserSecurityPolicyManager userSecurityPolicyManager) {
-        throw new ApiNotYetImplementedException('MIS03', "copy [for ModelItem ${getModelItemClass().simpleName}]")
+        throw new ApiNotYetImplementedException('MIS03', "copy [for ModelItem ${getDomainClass().simpleName}]")
     }
 
+    @Deprecated
     Model mergeLegacyObjectPatchDataIntoModelItem(ObjectPatchData objectPatchData, K targetModelItem, Model targetModel,
                                                   UserSecurityPolicyManager userSecurityPolicyManager) {
         if (!objectPatchData.hasPatches()) return targetModel
@@ -95,6 +90,7 @@ abstract class ModelItemService<K extends ModelItem> extends CatalogueItemServic
         targetModel
     }
 
+    @Deprecated
     void processLegacyFieldPatchData(LegacyFieldPatchData fieldPatchData, Model targetModel, UserSecurityPolicyManager userSecurityPolicyManager,
                                      UUID parentId = null) {
         // apply deletions of children to target object
@@ -139,12 +135,12 @@ abstract class ModelItemService<K extends ModelItem> extends CatalogueItemServic
 
         if (alreadySaved) {
             log.debug('Straight saving {} already saved {}', alreadySaved.size(), getModelItemClass().simpleName)
-            getModelItemClass().saveAll(alreadySaved)
+            getDomainClass().saveAll(alreadySaved)
         }
 
         if (notSaved) {
             if (batching) {
-                log.debug('Batch saving {} new {} in batches of {}', notSaved.size(), getModelItemClass().simpleName, BATCH_SIZE)
+                log.debug('Batch saving {} new {} in batches of {}', notSaved.size(), getDomainClass().simpleName, BATCH_SIZE)
                 List batch = []
                 int count = 0
 
@@ -160,7 +156,7 @@ abstract class ModelItemService<K extends ModelItem> extends CatalogueItemServic
                 batchSave(batch)
                 batch.clear()
             } else {
-                log.debug('Straight saving {} new {}', notSaved.size(), getModelItemClass().simpleName)
+                log.debug('Straight saving {} new {}', notSaved.size(), getDomainClass().simpleName)
                 notSaved.each { mi ->
                     save(flush: false, validate: false, mi)
                     updateFacetsAfterInsertingCatalogueItem(mi)
@@ -172,9 +168,9 @@ abstract class ModelItemService<K extends ModelItem> extends CatalogueItemServic
 
     void batchSave(List<K> modelItems) {
         long start = System.currentTimeMillis()
-        log.debug('Performing batch save of {} {}', modelItems.size(), getModelItemClass().simpleName)
+        log.debug('Performing batch save of {} {}', modelItems.size(), getDomainClass().simpleName)
         List<Boolean> inserts = modelItems.collect { !it.id }
-        getModelItemClass().saveAll(modelItems)
+        getDomainClass().saveAll(modelItems)
         modelItems.eachWithIndex { mi, i ->
             if (inserts[i]) updateFacetsAfterInsertingCatalogueItem(mi)
             checkBreadcrumbTreeAfterSavingCatalogueItem(mi)

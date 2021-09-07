@@ -125,11 +125,6 @@ class TermRelationshipTypeService extends ModelItemService<TermRelationshipType>
     }
 
     @Override
-    Class<TermRelationshipType> getModelItemClass() {
-        TermRelationshipType
-    }
-
-    @Override
     void deleteAllByModelId(UUID modelId) {
         List<UUID> termRelationshipTypeIds = TermRelationshipType.byTerminologyId(modelId).id().list() as List<UUID>
 

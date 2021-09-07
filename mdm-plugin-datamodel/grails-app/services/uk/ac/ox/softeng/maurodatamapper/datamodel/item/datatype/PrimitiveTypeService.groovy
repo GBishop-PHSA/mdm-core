@@ -106,11 +106,6 @@ class PrimitiveTypeService extends ModelItemService<PrimitiveType> implements Su
     }
 
     @Override
-    Class<PrimitiveType> getModelItemClass() {
-        PrimitiveType
-    }
-
-    @Override
     Boolean shouldPerformSearchForTreeTypeCatalogueItems(String domainType) {
         domainType == PrimitiveType.simpleName
     }

@@ -23,7 +23,7 @@ import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
 import grails.core.GrailsApplication
 import grails.core.GrailsClass
-import org.grails.orm.hibernate.proxy.HibernateProxyHandler
+import grails.core.support.proxy.ProxyHandler
 import org.springframework.beans.factory.annotation.Autowired
 
 import java.lang.reflect.ParameterizedType
@@ -33,7 +33,8 @@ trait MdmDomainService<K extends MdmDomain> {
     @Autowired
     GrailsApplication grailsApplication
 
-    final static HibernateProxyHandler HIBERNATE_PROXY_HANDLER = new HibernateProxyHandler()
+    @Autowired
+    ProxyHandler proxyHandler
 
     abstract K get(Serializable id)
 
@@ -42,6 +43,8 @@ trait MdmDomainService<K extends MdmDomain> {
     abstract Long count()
 
     abstract void delete(K domain)
+
+    abstract K findByParentIdAndPathIdentifier(UUID parentId, String pathIdentifier)
 
     K save(K domain) {
         // Default behaviours for save in GormEntity
@@ -53,7 +56,7 @@ trait MdmDomainService<K extends MdmDomain> {
     }
 
     K unwrapIfProxy(def ge) {
-        HIBERNATE_PROXY_HANDLER.unwrapIfProxy(ge) as K
+        proxyHandler.unwrapIfProxy(ge) as K
     }
 
     Class<K> getDomainClass() {
@@ -79,7 +82,4 @@ trait MdmDomainService<K extends MdmDomain> {
     boolean handlesPathPrefix(String pathPrefix) {
         (getDomainClass().getDeclaredConstructor().newInstance() as MdmDomain).pathPrefix == pathPrefix
     }
-
-    abstract K findByParentIdAndPathIdentifier(UUID parentId, String pathIdentifier)
-
 }

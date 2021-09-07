@@ -721,11 +721,6 @@ class DataClassService extends ModelItemService<DataClass> implements SummaryMet
     }
 
     @Override
-    Class<DataClass> getModelItemClass() {
-        DataClass
-    }
-
-    @Override
     boolean hasTreeTypeModelItems(DataClass dataClass, boolean fullTreeRender) {
         dataClass.dataClasses || (dataClass.dataElements && fullTreeRender)
     }

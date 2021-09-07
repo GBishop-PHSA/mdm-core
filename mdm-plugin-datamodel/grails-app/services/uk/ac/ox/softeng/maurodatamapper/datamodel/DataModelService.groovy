@@ -349,8 +349,8 @@ class DataModelService extends ModelService<DataModel> implements SummaryMetadat
 
         log.trace('Removing other ModelItems in DataModel')
         modelItemServices.findAll {
-            !(it.modelItemClass in [DataClass, DataElement, DataType, EnumerationType, ModelDataType, PrimitiveType,
-                                    ReferenceType, EnumerationValue])
+            !(it.domainClass in [DataClass, DataElement, DataType, EnumerationType, ModelDataType, PrimitiveType,
+                                 ReferenceType, EnumerationValue])
         }.each {modelItemService ->
             try {
                 modelItemService.deleteAllByModelId(dataModel.id)
@@ -716,11 +716,6 @@ class DataModelService extends ModelService<DataModel> implements SummaryMetadat
         DataModel.byClassifierId(classifier.id)
             .list()
             .findAll {userSecurityPolicyManager.userCanReadSecuredResourceId(DataModel, it.id)} as List<DataModel>
-    }
-
-    @Override
-    Class<DataModel> getModelClass() {
-        DataModel
     }
 
     @Override

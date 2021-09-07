@@ -162,11 +162,6 @@ class TermRelationshipService extends ModelItemService<TermRelationship> {
     }
 
     @Override
-    Class<TermRelationship> getModelItemClass() {
-        TermRelationship
-    }
-
-    @Override
     TermRelationship findByIdJoinClassifiers(UUID id) {
         TermRelationship.findById(id, [fetch: [classifiers: 'join']])
     }

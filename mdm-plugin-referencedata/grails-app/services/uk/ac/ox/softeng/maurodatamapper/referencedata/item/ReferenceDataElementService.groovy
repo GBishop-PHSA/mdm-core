@@ -127,11 +127,6 @@ class ReferenceDataElementService extends ModelItemService<ReferenceDataElement>
     }
 
     @Override
-    Class<ReferenceDataElement> getModelItemClass() {
-        ReferenceDataElement
-    }
-
-    @Override
     Boolean shouldPerformSearchForTreeTypeCatalogueItems(String domainType) {
         domainType == ReferenceDataElement.simpleName
     }

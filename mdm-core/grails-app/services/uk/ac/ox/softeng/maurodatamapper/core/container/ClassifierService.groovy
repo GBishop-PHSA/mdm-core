@@ -40,21 +40,6 @@ class ClassifierService extends ContainerService<Classifier> {
     List<CatalogueItemService> catalogueItemServices
 
     @Override
-    boolean handles(Class clazz) {
-        clazz == Classifier
-    }
-
-    @Override
-    boolean handles(String domainType) {
-        domainType == Classifier.simpleName
-    }
-
-    @Override
-    Class<Classifier> getContainerClass() {
-        Classifier
-    }
-
-    @Override
     boolean isContainerVirtual() {
         true
     }
@@ -158,10 +143,6 @@ class ClassifierService extends ContainerService<Classifier> {
 
     Long count() {
         Classifier.count()
-    }
-
-    Classifier save(Classifier classifier) {
-        classifier.save()
     }
 
     def saveAll(Collection<Classifier> classifiers) {

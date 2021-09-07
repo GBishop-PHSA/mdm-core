@@ -34,17 +34,12 @@ import uk.ac.ox.softeng.maurodatamapper.core.traits.service.MultiFacetAwareServi
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManager
 
-import grails.core.GrailsApplication
 import groovy.util.logging.Slf4j
 import org.grails.datastore.gorm.GormEntity
 import org.hibernate.SessionFactory
-import org.springframework.beans.factory.annotation.Autowired
 
 @Slf4j
 abstract class CatalogueItemService<K extends CatalogueItem> implements MdmDomainService<K>, MultiFacetAwareService<K> {
-
-    @Autowired
-    GrailsApplication grailsApplication
 
     SessionFactory sessionFactory
     ClassifierService classifierService
@@ -54,14 +49,34 @@ abstract class CatalogueItemService<K extends CatalogueItem> implements MdmDomai
     AnnotationService annotationService
     ReferenceFileService referenceFileService
 
-    abstract Class<K> getCatalogueItemClass()
-
     Class<K> getMultiFacetAwareClass() {
-        getCatalogueItemClass()
+        getDomainClass()
     }
 
     abstract void deleteAll(Collection<K> catalogueItems)
 
+    /**
+     * Use domain.getAll(ids) to retrieve objects from the database.
+     *
+     * Make sure you use findAll() on the output of this, its possible to get ids which dont exist in this domain and the Grails implementation
+     * of getAll(ids) will return a list of null elements
+     * @param ids
+     * @return
+     */
+    abstract List<K> getAll(Collection<UUID> ids)
+
+    abstract K findByIdJoinClassifiers(UUID id)
+
+    abstract void removeAllFromClassifier(Classifier classifier)
+
+    abstract List<K> findAllReadableByClassifier(UserSecurityPolicyManager userSecurityPolicyManager, Classifier classifier)
+
+    abstract List<K> findAllReadableTreeTypeCatalogueItemsBySearchTermAndDomain(UserSecurityPolicyManager userSecurityPolicyManager,
+                                                                                String searchTerm, String domainType)
+
+    abstract Boolean shouldPerformSearchForTreeTypeCatalogueItems(String domainType)
+
+    @Override
     K save(Map args, K catalogueItem) {
         // If inserting then we will need to update all the facets with the CIs "id" after insert
         // If updating then we dont need to do this as the ID has already been done
@@ -83,42 +98,21 @@ abstract class CatalogueItemService<K extends CatalogueItem> implements MdmDomai
         catalogueItem
     }
 
-    /**
-     * Use domain.getAll(ids) to retrieve objects from the database.
-     *
-     * Make sure you use findAll() on the output of this, its possible to get ids which dont exist in this domain and the Grails implementation
-     * of getAll(ids) will return a list of null elements
-     * @param ids
-     * @return
-     */
-    abstract List<K> getAll(Collection<UUID> ids)
-
-    boolean hasTreeTypeModelItems(K catalogueItem, boolean fullTreeRender) {
-        false
-    }
-
     boolean hasTreeTypeModelItems(K catalogueItem) {
         hasTreeTypeModelItems(catalogueItem, false)
     }
 
-    List<ModelItem> findAllTreeTypeModelItemsIn(K catalogueItem, boolean fullTreeRender) {
-        []
+    boolean hasTreeTypeModelItems(K catalogueItem, boolean fullTreeRender) {
+        false
     }
 
     List<ModelItem> findAllTreeTypeModelItemsIn(K catalogueItem) {
         findAllTreeTypeModelItemsIn(catalogueItem, false)
     }
 
-    abstract K findByIdJoinClassifiers(UUID id)
-
-    abstract void removeAllFromClassifier(Classifier classifier)
-
-    abstract List<K> findAllReadableByClassifier(UserSecurityPolicyManager userSecurityPolicyManager, Classifier classifier)
-
-    abstract List<K> findAllReadableTreeTypeCatalogueItemsBySearchTermAndDomain(UserSecurityPolicyManager userSecurityPolicyManager,
-                                                                                String searchTerm, String domainType)
-
-    abstract Boolean shouldPerformSearchForTreeTypeCatalogueItems(String domainType)
+    List<ModelItem> findAllTreeTypeModelItemsIn(K catalogueItem, boolean fullTreeRender) {
+        []
+    }
 
     void addClassifierToCatalogueItem(UUID catalogueItemId, Classifier classifier) {
         get(catalogueItemId).addToClassifiers(classifier)
@@ -200,6 +194,7 @@ abstract class CatalogueItemService<K extends CatalogueItem> implements MdmDomai
         findByParentIdAndLabel(parentId, pathIdentifier)
     }
 
+    @Deprecated
     void mergeLegacyMetadataIntoCatalogueItem(LegacyFieldPatchData fieldPatchData, K targetCatalogueItem,
                                               UserSecurityPolicyManager userSecurityPolicyManager) {
         log.debug('Merging Metadata into Catalogue Item')
