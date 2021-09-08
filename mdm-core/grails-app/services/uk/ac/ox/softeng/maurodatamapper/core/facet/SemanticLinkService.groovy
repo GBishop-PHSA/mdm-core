@@ -217,17 +217,4 @@ class SemanticLinkService implements MultiFacetItemAwareService<SemanticLink> {
     List<SemanticLink> findAllBySourceOrTargetMultiFacetAwareItemId(Serializable multiFacetAwareItemId, Map paginate = [:]) {
         SemanticLink.withFilter(SemanticLink.byAnyMultiFacetAwareItemId(multiFacetAwareItemId), paginate).list(paginate)
     }
-
-    @Deprecated(forRemoval = true)
-    List<SemanticLink> findAllByMultiFacetAwareItemIdAndType(UUID multiFacetAwareItemId, String type, Map paginate = [:]) {
-        switch (type) {
-            case 'source':
-                return findAllBySourceMultiFacetAwareItemId(multiFacetAwareItemId, paginate)
-                break
-            case 'target':
-                return findAllByTargetMultiFacetAwareItemId(multiFacetAwareItemId, paginate)
-        }
-        findAllBySourceOrTargetMultiFacetAwareItemId(multiFacetAwareItemId, paginate)
-    }
-
 }

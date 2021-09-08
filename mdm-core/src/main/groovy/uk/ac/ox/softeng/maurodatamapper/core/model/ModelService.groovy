@@ -43,7 +43,6 @@ import uk.ac.ox.softeng.maurodatamapper.core.facet.VersionLinkService
 import uk.ac.ox.softeng.maurodatamapper.core.facet.VersionLinkType
 import uk.ac.ox.softeng.maurodatamapper.core.gorm.constraint.callable.VersionAwareConstraints
 import uk.ac.ox.softeng.maurodatamapper.core.path.PathService
-import uk.ac.ox.softeng.maurodatamapper.core.provider.dataloader.DataLoaderProviderService
 import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.ModelImporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.ModelImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.core.rest.converter.json.OffsetDateTimeConverter
@@ -197,11 +196,6 @@ abstract class ModelService<K extends Model>
     K undoSoftDeleteModel(K model) {
         model?.deleted = false
         model
-    }
-
-    @Deprecated
-    List<K> findAllByDataLoaderPlugin(DataLoaderProviderService dataLoaderProviderService, Map pagination = [:]) {
-        findAllByMetadataNamespaceAndKey(dataLoaderProviderService.namespace, dataLoaderProviderService.name, pagination)
     }
 
     List<K> findAllReadableModels(UserSecurityPolicyManager userSecurityPolicyManager, boolean includeDocumentSuperseded,
@@ -450,7 +444,7 @@ abstract class ModelService<K extends Model>
      * @param domainService Service which handles catalogueItems of the leftModel and rightModel type.
      * @return The model resulting from the merging of changes.
      */
-    K mergeObjectPatchDataIntoModel(ObjectPatchData objectPatchData, K targetModel, K sourceModel, boolean isLegacy,
+    K mergeObjectPatchDataIntoModel(ObjectPatchData objectPatchData, K targetModel, K sourceModel,
                                     UserSecurityPolicyManager userSecurityPolicyManager) {
 
 
@@ -459,9 +453,7 @@ abstract class ModelService<K extends Model>
             return targetModel
         }
         log.debug('Merging patch data into {}', targetModel.id)
-        if (isLegacy) return mergeLegacyObjectPatchDataIntoModel(objectPatchData, targetModel, userSecurityPolicyManager)
-
-        getSortedFieldPatchDataForMerging(objectPatchData).each { fieldPatch ->
+        getSortedFieldPatchDataForMerging(objectPatchData).each {fieldPatch ->
             switch (fieldPatch.type) {
                 case 'creation':
                     return processCreationPatchIntoModel(fieldPatch, targetModel, sourceModel, userSecurityPolicyManager)
@@ -625,30 +617,6 @@ abstract class ModelService<K extends Model>
             throw new ApiInvalidModelException('MS01', 'Copied Facet is invalid', copy.errors, messageSource)
 
         multiFacetItemAwareService.save(copy, flush: false, validate: false)
-    }
-
-    @SuppressWarnings('GrDeprecatedAPIUsage')
-    @Deprecated
-    K mergeLegacyObjectPatchDataIntoModel(ObjectPatchData objectPatchData, K targetModel, UserSecurityPolicyManager userSecurityPolicyManager) {
-
-        log.debug('Merging legacy {} diffs into model {}', objectPatchData.getDiffsWithContent().size(), targetModel.label)
-        objectPatchData.getDiffsWithContent().each { mergeFieldDiff ->
-            log.debug('{}', mergeFieldDiff.summary)
-
-            if (mergeFieldDiff.isFieldChange()) {
-                targetModel.setProperty(mergeFieldDiff.fieldName, mergeFieldDiff.value)
-            } else if (mergeFieldDiff.isMetadataChange()) {
-                mergeLegacyMetadataIntoCatalogueItem(mergeFieldDiff, targetModel, userSecurityPolicyManager)
-            } else {
-                ModelItemService modelItemService = modelItemServices.find { it.handles(mergeFieldDiff.fieldName) }
-                if (modelItemService) {
-                    modelItemService.processLegacyFieldPatchData(mergeFieldDiff, targetModel, userSecurityPolicyManager)
-                } else {
-                    log.error('Unknown ModelItem field to merge [{}]', mergeFieldDiff.fieldName)
-                }
-            }
-        }
-        targetModel
     }
 
     List<VersionTreeModel> buildModelVersionTree(K instance, VersionLinkType versionLinkType,

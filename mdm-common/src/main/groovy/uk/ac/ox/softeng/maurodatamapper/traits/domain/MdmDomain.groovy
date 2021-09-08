@@ -54,9 +54,4 @@ trait MdmDomain {
     String getPathIdentifier() {
         null
     }
-
-    @Deprecated(forRemoval = true)
-    void setCreatedByUser(User user) {
-        this.createdBy = user?.emailAddress
-    }
 }
