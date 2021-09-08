@@ -17,6 +17,7 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.federation.test
 
+import uk.ac.ox.softeng.maurodatamapper.core.bootstrap.StandardEmailAddress
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.model.Model
 import uk.ac.ox.softeng.maurodatamapper.core.model.ModelService
@@ -66,14 +67,14 @@ abstract class BaseSubscribedModelServiceIntegrationSpec<K extends Model> extend
     void setupDomainData() {
         log.debug('Setting up BaseSubscribedCatalogueServiceIntegrationSpec')
 
-        folder = new Folder(label: 'Federation Folder', createdByUser: admin)
+        folder = new Folder(label: 'Federation Folder', createdBy: StandardEmailAddress.INTEGRATION_TEST)
         checkAndSave(folder)
 
         //Mock a subscription to a remote catalogue
         subscribedCatalogue = new SubscribedCatalogue(url: 'http://remote.example.com',
                                                       apiKey: UUID.randomUUID(),
                                                       label: 'Test Remote Catalogue',
-                                                      createdByUser: admin)
+                                                      createdBy: StandardEmailAddress.INTEGRATION_TEST)
         checkAndSave(subscribedCatalogue)
 
 
@@ -94,14 +95,14 @@ abstract class BaseSubscribedModelServiceIntegrationSpec<K extends Model> extend
         subscribedModelVersion1 = new SubscribedModel(subscribedModelId: Utils.toUuid("c8023de6-5329-4b8b-8a1b-27c2abeaffcd"),
                                                       folderId: getFolder().id,
                                                       subscribedCatalogue: subscribedCatalogue,
-                                                      createdByUser: admin,
+                                                      createdBy: StandardEmailAddress.INTEGRATION_TEST,
                                                       subscribedModelType: getModelType())
         checkAndSave(subscribedModelVersion1)
 
         subscribedModelVersion2 = new SubscribedModel(subscribedModelId: Utils.toUuid("d8023de6-5329-4b8b-8a1b-27c2abeaffcd"),
                                                       folderId: getFolder().id,
                                                       subscribedCatalogue: subscribedCatalogue,
-                                                      createdByUser: admin,
+                                                      createdBy: StandardEmailAddress.INTEGRATION_TEST,
                                                       subscribedModelType: getModelType())
         checkAndSave(subscribedModelVersion2)
     }

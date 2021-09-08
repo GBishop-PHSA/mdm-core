@@ -127,6 +127,11 @@ class CodeSetFunctionalSpec extends ModelUserAccessPermissionChangingAndVersioni
     }
 
     @Override
+    String getE25ModelPrefix() {
+        'cs'
+    }
+
+    @Override
     String getEditorGroupRoleName() {
         GroupRole.CONTAINER_ADMIN_ROLE_NAME
     }

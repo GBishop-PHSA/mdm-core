@@ -14,7 +14,7 @@ function integrationTest(){
   :mdm-plugin-terminology:integrationTest \
   :mdm-security:integrationTest \
   :mdm-plugin-dataflow:integrationTest \
-  :mdm-plugin-referencedata:integrationTest \
+  :mdm-plugin-referencedata:integrationTest \UserSecurityPolicyManagerInterceptor
   :mdm-plugin-federation:integrationTest
 }
 

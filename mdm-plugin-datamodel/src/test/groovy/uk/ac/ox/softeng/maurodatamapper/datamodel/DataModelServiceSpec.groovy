@@ -17,6 +17,7 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.datamodel
 
+import uk.ac.ox.softeng.maurodatamapper.core.bootstrap.StandardEmailAddress
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
 import uk.ac.ox.softeng.maurodatamapper.core.facet.BreadcrumbTree
 import uk.ac.ox.softeng.maurodatamapper.core.facet.BreadcrumbTreeService
@@ -74,21 +75,21 @@ class DataModelServiceSpec extends CatalogueItemServiceSpec implements ServiceUn
         complexDataModel = buildComplexDataModel()
         simpleDataModel = buildSimpleDataModel()
 
-        DataModel dataModel1 = new DataModel(createdByUser: reader1, label: 'test database', type: DataModelType.DATA_ASSET, folder: testFolder,
+        DataModel dataModel1 = new DataModel(createdBy: StandardEmailAddress.UNIT_TEST, label: 'test database', type: DataModelType.DATA_ASSET, folder: testFolder,
                                              authority: testAuthority)
-        DataModel dataModel2 = new DataModel(createdByUser: reader2, label: 'test form', type: DataModelType.DATA_ASSET, folder: testFolder,
+        DataModel dataModel2 = new DataModel(createdBy: StandardEmailAddress.UNIT_TEST, label: 'test form', type: DataModelType.DATA_ASSET, folder: testFolder,
                                              authority: testAuthority)
-        DataModel dataModel3 = new DataModel(createdByUser: editor, label: 'test standard', type: DataModelType.DATA_STANDARD, folder: testFolder,
+        DataModel dataModel3 = new DataModel(createdBy: StandardEmailAddress.UNIT_TEST, label: 'test standard', type: DataModelType.DATA_STANDARD, folder: testFolder,
                                              authority: testAuthority)
 
         checkAndSave(dataModel1)
         checkAndSave(dataModel2)
         checkAndSave(dataModel3)
 
-        DataType dt = new PrimitiveType(createdByUser: admin, label: 'integration datatype')
+        DataType dt = new PrimitiveType(createdBy: StandardEmailAddress.UNIT_TEST, label: 'integration datatype')
         dataModel1.addToDataTypes(dt)
-        DataElement dataElement = new DataElement(label: 'sdmelement', createdByUser: editor, dataType: dt)
-        dataModel1.addToDataClasses(new DataClass(label: 'sdmclass', createdByUser: editor).addToDataElements(dataElement))
+        DataElement dataElement = new DataElement(label: 'sdmelement', createdBy: StandardEmailAddress.UNIT_TEST, dataType: dt)
+        dataModel1.addToDataClasses(new DataClass(label: 'sdmclass', createdBy: StandardEmailAddress.UNIT_TEST).addToDataElements(dataElement))
 
         checkAndSave(dataModel1)
 
@@ -154,7 +155,7 @@ class DataModelServiceSpec extends CatalogueItemServiceSpec implements ServiceUn
     void "test save"() {
 
         when:
-        DataModel dataModel = new DataModel(createdByUser: reader2, label: 'saving test', type: DataModelType.DATA_STANDARD, folder: testFolder,
+        DataModel dataModel = new DataModel(createdBy: StandardEmailAddress.UNIT_TEST, label: 'saving test', type: DataModelType.DATA_STANDARD, folder: testFolder,
                                             authority: testAuthority)
         service.save(dataModel)
 
@@ -583,7 +584,7 @@ class DataModelServiceSpec extends CatalogueItemServiceSpec implements ServiceUn
 
     void 'DMSV02 : test validation on invalid simple model'() {
         given:
-        DataModel check = new DataModel(createdByUser: reader1, type: DataModelType.DATA_ASSET, folder: testFolder, authority: testAuthority)
+        DataModel check = new DataModel(createdBy: StandardEmailAddress.UNIT_TEST, type: DataModelType.DATA_ASSET, folder: testFolder, authority: testAuthority)
 
         when:
         DataModel invalid = service.validate(check)
@@ -601,9 +602,9 @@ class DataModelServiceSpec extends CatalogueItemServiceSpec implements ServiceUn
 
     void 'DMSV03 : test validation on invalid primitive datatype model'() {
         given:
-        DataModel check = new DataModel(createdByUser: reader1, label: 'test invalid', type: DataModelType.DATA_ASSET, folder: testFolder,
+        DataModel check = new DataModel(createdBy: StandardEmailAddress.UNIT_TEST, label: 'test invalid', type: DataModelType.DATA_ASSET, folder: testFolder,
                                         authority: testAuthority)
-        check.addToDataTypes(new PrimitiveType(createdByUser: admin))
+        check.addToDataTypes(new PrimitiveType(createdBy: StandardEmailAddress.UNIT_TEST))
 
         when:
         DataModel invalid = service.validate(check)
@@ -621,9 +622,9 @@ class DataModelServiceSpec extends CatalogueItemServiceSpec implements ServiceUn
 
     void 'DMSV04 : test validation on invalid dataclass model'() {
         given:
-        DataModel check = new DataModel(createdByUser: reader1, label: 'test invalid', type: DataModelType.DATA_ASSET, folder: testFolder,
+        DataModel check = new DataModel(createdBy: StandardEmailAddress.UNIT_TEST, label: 'test invalid', type: DataModelType.DATA_ASSET, folder: testFolder,
                                         authority: testAuthority)
-        check.addToDataClasses(new DataClass(createdByUser: admin))
+        check.addToDataClasses(new DataClass(createdBy: StandardEmailAddress.UNIT_TEST))
 
         when:
         DataModel invalid = service.validate(check)
@@ -641,10 +642,10 @@ class DataModelServiceSpec extends CatalogueItemServiceSpec implements ServiceUn
 
     void 'DMSV05 : test validation on invalid dataclass dataelement model'() {
         given:
-        DataModel check = new DataModel(createdByUser: reader1, label: 'test invalid', type: DataModelType.DATA_ASSET, folder: testFolder,
+        DataModel check = new DataModel(createdBy: StandardEmailAddress.UNIT_TEST, label: 'test invalid', type: DataModelType.DATA_ASSET, folder: testFolder,
                                         authority: testAuthority)
-        DataClass parent = new DataClass(createdByUser: admin, label: 'parent')
-        parent.addToDataElements(createdByUser: admin)
+        DataClass parent = new DataClass(createdBy: StandardEmailAddress.UNIT_TEST, label: 'parent')
+        parent.addToDataElements(createdBy: StandardEmailAddress.UNIT_TEST)
         check.addToDataClasses(parent)
 
         when:
@@ -663,11 +664,11 @@ class DataModelServiceSpec extends CatalogueItemServiceSpec implements ServiceUn
 
     void 'DMSV06 : test validation on invalid reference datatype model'() {
         given:
-        DataModel check = new DataModel(createdByUser: reader1, label: 'test invalid', type: DataModelType.DATA_ASSET, folder: testFolder,
+        DataModel check = new DataModel(createdBy: StandardEmailAddress.UNIT_TEST, label: 'test invalid', type: DataModelType.DATA_ASSET, folder: testFolder,
                                         authority: testAuthority)
-        DataClass dc = new DataClass(createdByUser: admin, label: 'ref')
+        DataClass dc = new DataClass(createdBy: StandardEmailAddress.UNIT_TEST, label: 'ref')
         check.addToDataClasses(dc)
-        check.addToDataTypes(new ReferenceType(createdByUser: admin, label: 'ref'))
+        check.addToDataTypes(new ReferenceType(createdBy: StandardEmailAddress.UNIT_TEST, label: 'ref'))
 
         when:
         DataModel invalid = service.validate(check)
@@ -685,11 +686,11 @@ class DataModelServiceSpec extends CatalogueItemServiceSpec implements ServiceUn
 
     void 'DMSV07 : test validation on invalid nested reference datatype model'() {
         given:
-        DataModel check = new DataModel(createdByUser: reader1, label: 'test invalid', type: DataModelType.DATA_ASSET, folder: testFolder,
+        DataModel check = new DataModel(createdBy: StandardEmailAddress.UNIT_TEST, label: 'test invalid', type: DataModelType.DATA_ASSET, folder: testFolder,
                                         authority: testAuthority)
-        DataClass dc = new DataClass(createdByUser: admin)
+        DataClass dc = new DataClass(createdBy: StandardEmailAddress.UNIT_TEST)
         check.addToDataClasses(dc)
-        check.addToDataTypes(new ReferenceType(createdByUser: admin, label: 'ref', referenceClass: dc))
+        check.addToDataTypes(new ReferenceType(createdBy: StandardEmailAddress.UNIT_TEST, label: 'ref', referenceClass: dc))
 
         when:
         DataModel invalid = service.validate(check)
@@ -707,12 +708,12 @@ class DataModelServiceSpec extends CatalogueItemServiceSpec implements ServiceUn
 
     void 'DMSV08 : test validation on invalid nested dataclass model'() {
         given:
-        DataModel check = new DataModel(createdByUser: reader1, label: 'test invalid', type: DataModelType.DATA_ASSET, folder: testFolder,
+        DataModel check = new DataModel(createdBy: StandardEmailAddress.UNIT_TEST, label: 'test invalid', type: DataModelType.DATA_ASSET, folder: testFolder,
                                         authority: testAuthority)
-        DataClass parent = new DataClass(createdByUser: admin, label: 'parent')
-        parent.addToDataClasses(new DataClass(createdByUser: admin))
+        DataClass parent = new DataClass(createdBy: StandardEmailAddress.UNIT_TEST, label: 'parent')
+        parent.addToDataClasses(new DataClass(createdBy: StandardEmailAddress.UNIT_TEST))
         check.addToDataClasses(parent)
-        check.addToDataClasses(new DataClass(createdByUser: admin, label: 'other'))
+        check.addToDataClasses(new DataClass(createdBy: StandardEmailAddress.UNIT_TEST, label: 'other'))
 
         when:
         DataModel invalid = service.validate(check)
@@ -730,14 +731,14 @@ class DataModelServiceSpec extends CatalogueItemServiceSpec implements ServiceUn
 
     void 'DMSV09 : test validation on invalid nested dataclass dataelement model'() {
         given:
-        DataModel check = new DataModel(createdByUser: reader1, label: 'test invalid', type: DataModelType.DATA_ASSET, folder: testFolder,
+        DataModel check = new DataModel(createdBy: StandardEmailAddress.UNIT_TEST, label: 'test invalid', type: DataModelType.DATA_ASSET, folder: testFolder,
                                         authority: testAuthority)
-        DataClass parent = new DataClass(createdByUser: admin, label: 'parent')
-        DataClass child = new DataClass(createdByUser: admin, label: 'child')
-        child.addToDataElements(createdByUser: admin, label: 'el')
+        DataClass parent = new DataClass(createdBy: StandardEmailAddress.UNIT_TEST, label: 'parent')
+        DataClass child = new DataClass(createdBy: StandardEmailAddress.UNIT_TEST, label: 'child')
+        child.addToDataElements(createdBy: StandardEmailAddress.UNIT_TEST, label: 'el')
         parent.addToDataClasses(child)
         check.addToDataClasses(parent)
-        check.addToDataClasses(new DataClass(createdByUser: admin, label: 'other'))
+        check.addToDataClasses(new DataClass(createdBy: StandardEmailAddress.UNIT_TEST, label: 'other'))
 
         when:
         DataModel invalid = service.validate(check)
@@ -755,14 +756,14 @@ class DataModelServiceSpec extends CatalogueItemServiceSpec implements ServiceUn
 
     void 'DMSV10 : test validation on invalid double nested dataclass model'() {
         given:
-        DataModel check = new DataModel(createdByUser: reader1, label: 'test invalid', type: DataModelType.DATA_ASSET, folder: testFolder,
+        DataModel check = new DataModel(createdBy: StandardEmailAddress.UNIT_TEST, label: 'test invalid', type: DataModelType.DATA_ASSET, folder: testFolder,
                                         authority: testAuthority)
-        DataClass grandparent = new DataClass(createdByUser: admin, label: 'grandparent')
-        DataClass parent = new DataClass(createdByUser: admin, label: 'parent')
+        DataClass grandparent = new DataClass(createdBy: StandardEmailAddress.UNIT_TEST, label: 'grandparent')
+        DataClass parent = new DataClass(createdBy: StandardEmailAddress.UNIT_TEST, label: 'parent')
         grandparent.addToDataClasses(parent)
-        parent.addToDataClasses(new DataClass(createdByUser: admin))
+        parent.addToDataClasses(new DataClass(createdBy: StandardEmailAddress.UNIT_TEST))
         check.addToDataClasses(grandparent)
-        check.addToDataClasses(new DataClass(createdByUser: admin, label: 'other'))
+        check.addToDataClasses(new DataClass(createdBy: StandardEmailAddress.UNIT_TEST, label: 'other'))
 
         when:
         DataModel invalid = service.validate(check)
@@ -780,16 +781,16 @@ class DataModelServiceSpec extends CatalogueItemServiceSpec implements ServiceUn
 
     void 'DMSV11 : test validation on invalid double nested dataclass dataelement model'() {
         given:
-        DataModel check = new DataModel(createdByUser: reader1, label: 'test invalid', type: DataModelType.DATA_ASSET, folder: testFolder,
+        DataModel check = new DataModel(createdBy: StandardEmailAddress.UNIT_TEST, label: 'test invalid', type: DataModelType.DATA_ASSET, folder: testFolder,
                                         authority: testAuthority)
-        DataClass grandparent = new DataClass(createdByUser: admin, label: 'grandparent')
-        DataClass parent = new DataClass(createdByUser: admin, label: 'parent')
+        DataClass grandparent = new DataClass(createdBy: StandardEmailAddress.UNIT_TEST, label: 'grandparent')
+        DataClass parent = new DataClass(createdBy: StandardEmailAddress.UNIT_TEST, label: 'parent')
         grandparent.addToDataClasses(parent)
-        DataClass child = new DataClass(createdByUser: admin, label: 'child')
-        child.addToDataElements(createdByUser: admin, label: 'el')
+        DataClass child = new DataClass(createdBy: StandardEmailAddress.UNIT_TEST, label: 'child')
+        child.addToDataElements(createdBy: StandardEmailAddress.UNIT_TEST, label: 'el')
         parent.addToDataClasses(child)
         check.addToDataClasses(grandparent)
-        check.addToDataClasses(new DataClass(createdByUser: admin, label: 'other'))
+        check.addToDataClasses(new DataClass(createdBy: StandardEmailAddress.UNIT_TEST, label: 'other'))
 
         when:
         DataModel invalid = service.validate(check)
