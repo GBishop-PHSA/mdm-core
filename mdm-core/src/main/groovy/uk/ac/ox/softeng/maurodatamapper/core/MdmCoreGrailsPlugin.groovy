@@ -17,6 +17,7 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.core
 
+import uk.ac.ox.softeng.maurodatamapper.core.admin.ApiProperty
 import uk.ac.ox.softeng.maurodatamapper.core.flyway.MdmFlywayMigationStrategy
 import uk.ac.ox.softeng.maurodatamapper.core.gorm.mapping.CoreSchemaMappingContext
 import uk.ac.ox.softeng.maurodatamapper.core.gorm.mapping.domain.AnnotationAwareMappingContext
@@ -34,6 +35,8 @@ import uk.ac.ox.softeng.maurodatamapper.core.gorm.mapping.domain.SemanticLinkAwa
 import uk.ac.ox.softeng.maurodatamapper.core.gorm.mapping.domain.VersionLinkAwareMappingContext
 import uk.ac.ox.softeng.maurodatamapper.core.markup.view.MarkupViewTemplateEngine
 import uk.ac.ox.softeng.maurodatamapper.core.provider.MauroDataMapperProviderService
+import uk.ac.ox.softeng.maurodatamapper.core.rest.render.MdmCsvApiPropertyRenderer
+import uk.ac.ox.softeng.maurodatamapper.core.rest.render.MdmCsvApiPropertyCollectionRenderer
 import uk.ac.ox.softeng.maurodatamapper.provider.plugin.MauroDataMapperPlugin
 import uk.ac.ox.softeng.maurodatamapper.search.filter.IdPathFilterFactory
 import uk.ac.ox.softeng.maurodatamapper.search.filter.IdPathSecureFilterFactory
@@ -190,6 +193,12 @@ This is basically the backend API.
             }
 
             markupTemplateEngine(MarkupViewTemplateEngine, ref('markupViewConfiguration'), applicationContext.classLoader)
+
+            halCsvApiPropertyRenderer(MdmCsvApiPropertyRenderer, ApiProperty) {
+            }
+
+            halCsvApiPropertyCollectionRenderer(MdmCsvApiPropertyCollectionRenderer, ApiProperty) {
+            }
         }
 
     }
