@@ -1589,25 +1589,24 @@ class CodeSetFunctionalSpec extends ResourceFunctionalSpec<CodeSet> {
         cleanUpData(id)
     }
 
-    void 'EX03 : test export simple CodeSet'() {
+    void 'EX03A : test export simple CodeSet JSON'() {
         given:
         POST('import/uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer/CodeSetJsonImporterService/4.0', [
             finalised                      : false,
             folderId                       : folderId.toString(),
             importAsNewDocumentationVersion: false,
             importFile                     : [
-                fileName    : 'FT Import',
                 fileType    : MimeType.JSON_API.name,
                 fileContents: loadTestFile('simpleCodeSet').toList()
             ]
         ])
-
-        verifyResponse CREATED, response
-        def id = response.body().items[0].id
-        String expected = new String(loadTestFile('simpleCodeSet')).replaceFirst('"exportedBy": "Admin User",',
-                                                                                 '"exportedBy": "Unlogged User",')
+        String expected = new String(loadTestFile('simpleCodeSet')).replace(/Admin User/, 'Unlogged User')
 
         expect:
+        verifyResponse CREATED, response
+        String id = response.body().items[0].id
+
+        and:
         id
 
         when:
@@ -1620,15 +1619,107 @@ class CodeSetFunctionalSpec extends ResourceFunctionalSpec<CodeSet> {
         cleanUpData(id)
     }
 
-    void 'EX04 : test export multiple CodeSets'() {
+    @PendingFeature(reason = 'No means to verify expected XML')
+    void 'EX03B : test export simple CodeSet XML'() {
+        given:
+        POST('import/uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer/CodeSetXmlImporterService/4.0', [
+            finalised                      : false,
+            folderId                       : folderId.toString(),
+            importAsNewDocumentationVersion: false,
+            importFile                     : [
+                fileType    : MimeType.XML.name,
+                fileContents: loadTestFile('simpleCodeSet', 'xml').toList()
+            ]
+        ])
+        String expected = new String(loadTestFile('simpleCodeSet', 'xml')).replace(/Admin User/, 'Unlogged User')
+
+        expect:
+        verifyResponse CREATED, response
+        String id = response.body().items[0].id
+
+        and:
+        id
+
+        when:
+        GET("${id}/export/uk.ac.ox.softeng.maurodatamapper.terminology.provider.exporter/CodeSetXmlExporterService/4.0", STRING_ARG)
+
+        then:
+        verifyJsonResponse OK, expected
+
+        cleanup:
+        cleanUpData(id)
+    }
+
+    @PendingFeature(reason = 'ApiBadRequestException: Term retrieval for te:Complex Test Terminology|tm:CTT00: Complex Test Term 00 failed')
+    void 'EX04A : test export complex CodeSet JSON'() {
+        given:
+        POST('import/uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer/CodeSetJsonImporterService/4.0', [
+            finalised                      : false,
+            folderId                       : folderId.toString(),
+            importAsNewDocumentationVersion: false,
+            importFile                     : [
+                fileType    : MimeType.JSON_API.name,
+                fileContents: loadTestFile('complexCodeSet').toList()
+            ]
+        ])
+        String expected = new String(loadTestFile('complexCodeSet')).replace(/Admin User/, 'Unlogged User')
+
+        expect:
+        verifyResponse CREATED, response
+        String id = response.body().items[0].id
+
+        and:
+        id
+
+        when:
+        GET("${id}/export/uk.ac.ox.softeng.maurodatamapper.terminology.provider.exporter/CodeSetJsonExporterService/4.0", STRING_ARG)
+
+        then:
+        verifyJsonResponse OK, expected
+
+        cleanup:
+        cleanUpData(id)
+    }
+
+    @PendingFeature(reason = 'No means to verify expected XML')
+    void 'EX04B : test export complex CodeSet XML'() {
+        given:
+        POST('import/uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer/CodeSetXmlImporterService/4.0', [
+            finalised                      : false,
+            folderId                       : folderId.toString(),
+            importAsNewDocumentationVersion: false,
+            importFile                     : [
+                fileType    : MimeType.XML.name,
+                fileContents: loadTestFile('complexCodeSet', 'xml').toList()
+            ]
+        ])
+        String expected = new String(loadTestFile('complexCodeSet', 'xml')).replace(/Admin User/, 'Unlogged User')
+
+        expect:
+        verifyResponse CREATED, response
+        String id = response.body().items[0].id
+
+        and:
+        id
+
+        when:
+        GET("${id}/export/uk.ac.ox.softeng.maurodatamapper.terminology.provider.exporter/CodeSetXmlExporterService/4.0", STRING_ARG)
+
+        then:
+        verifyJsonResponse OK, expected
+
+        cleanup:
+        cleanUpData(id)
+    }
+
+    void 'EX05 : test export multiple CodeSets'() {
         given:
         String id = createNewItem(validJson)
         String id2 = createNewItem([label: 'Functional Test Model 2'])
 
         when:
         POST('export/uk.ac.ox.softeng.maurodatamapper.terminology.provider.exporter/CodeSetJsonExporterService/4.0',
-             [codeSetIds: [id, id2]], STRING_ARG
-        )
+             [codeSetIds: [id, id2]], STRING_ARG)
 
         then:
         verifyJsonResponse OK, '''{
@@ -1668,6 +1759,76 @@ class CodeSetFunctionalSpec extends ResourceFunctionalSpec<CodeSet> {
                 }
             }
         }'''
+
+        cleanup:
+        cleanUpData(id)
+        cleanUpData(id2)
+    }
+
+    @PendingFeature(reason = 'ApiBadRequestException: Term retrieval for te:Simple Test Terminology|tm:STT01: Simple Test Term 01 failed')
+    void 'EX05A : test export multiple CodeSets JSON'() {
+        given:
+        POST('import/uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer/CodeSetJsonImporterService/4.0', [
+            finalised                      : false,
+            folderId                       : folderId.toString(),
+            importAsNewDocumentationVersion: false,
+            importFile                     : [
+                fileType    : MimeType.JSON_API.name,
+                fileContents: loadTestFile('simpleAndComplexCodeSets').toList()
+            ]
+        ])
+        String expected = new String(loadTestFile('simpleAndComplexCodeSets')).replace(/Admin User/, 'Unlogged User')
+
+        expect:
+        verifyResponse CREATED, response
+        String id = response.body().items[0].id
+        String id2 = response.body().items[1].id
+
+        and:
+        id
+        id2
+
+        when:
+        POST('export/uk.ac.ox.softeng.maurodatamapper.terminology.provider.exporter/CodeSetJsonExporterService/4.0',
+             [codeSetIds: [id, id2]], STRING_ARG)
+
+        then:
+        verifyJsonResponse OK, expected
+
+        cleanup:
+        cleanUpData(id)
+        cleanUpData(id2)
+    }
+
+    @PendingFeature(reason = 'No means to verify expected XML')
+    void 'EX05B : test export multiple CodeSets XML'() {
+        given:
+        POST('import/uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer/CodeSetXmlImporterService/4.0', [
+            finalised                      : false,
+            folderId                       : folderId.toString(),
+            importAsNewDocumentationVersion: false,
+            importFile                     : [
+                fileType    : MimeType.XML.name,
+                fileContents: loadTestFile('simpleAndComplexCodeSets', 'xml').toList()
+            ]
+        ])
+        String expected = new String(loadTestFile('simpleAndComplexCodeSets', 'xml')).replace(/Admin User/, 'Unlogged User')
+
+        expect:
+        verifyResponse CREATED, response
+        String id = response.body().items[0].id
+        String id2 = response.body().items[1].id
+
+        and:
+        id
+        id2
+
+        when:
+        POST('export/uk.ac.ox.softeng.maurodatamapper.terminology.provider.exporter/CodeSetXmlExporterService/4.0',
+             [codeSetIds: [id, id2]], STRING_ARG)
+
+        then:
+        verifyJsonResponse OK, expected
 
         cleanup:
         cleanUpData(id)
@@ -1874,6 +2035,260 @@ class CodeSetFunctionalSpec extends ResourceFunctionalSpec<CodeSet> {
         cleanup:
         cleanUpData(id)
         DELETE("terminologies/${tid}?permanent=true")
+    }
+
+    void 'IM06A : test import simple CodeSet JSON'() {
+        when:
+        POST('import/uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer/CodeSetJsonImporterService/4.0', [
+            finalised                      : false,
+            folderId                       : folderId.toString(),
+            importAsNewDocumentationVersion: false,
+            importFile                     : [
+                fileType    : MimeType.JSON_API.name,
+                fileContents: loadTestFile('simpleCodeSet').toList()
+            ]
+        ])
+
+        then:
+        verifyResponse CREATED, response
+        String id = response.body().items[0].id
+
+        and:
+        id
+
+        cleanup:
+        cleanUpData(id)
+    }
+
+    @PendingFeature(reason = 'ApiBadRequestException: Term retrieval for te:Simple Test Terminology|tm:STT01: Simple Test Term 01 failed')
+    void 'IM06B : test import simple CodeSet XML'() {
+        given:
+        POST('terminologies/import/uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer/TerminologyXmlImporterService/4.0', [
+            finalised                      : false,
+            terminologyName                : 'Simple Test Terminology',
+            folderId                       : folderId.toString(),
+            importAsNewDocumentationVersion: false,
+            importFile                     : [
+                fileType    : MimeType.XML.name,
+                fileContents: loadTestFile('simpleTerminologyForCodeSet', 'xml').toList()
+            ]
+        ], MAP_ARG, true)
+        verifyResponse CREATED, response
+        String terminologyId = response.body().items[0].id
+
+        when:
+        POST('import/uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer/CodeSetXmlImporterService/4.0', [
+            finalised                      : false,
+            folderId                       : folderId.toString(),
+            importAsNewDocumentationVersion: false,
+            importFile                     : [
+                fileType    : MimeType.XML.name,
+                fileContents: loadTestFile('bootstrappedSimpleCodeSet', 'xml').toList()
+            ]
+        ])
+
+        then:
+        verifyResponse CREATED, response
+        String id = response.body().items[0].id
+
+        and:
+        id
+
+        cleanup:
+        cleanUpData(id)
+        DELETE("terminologies/${terminologyId}?permanent=true")
+    }
+
+    @PendingFeature(reason = 'ApiBadRequestException: Term retrieval for te:Complex Test Terminology|tm:CTT00: Complex Test Term 00 failed')
+    void 'IM07A : test import complex CodeSet JSON'() {
+        given:
+        POST('terminologies/import/uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer/TerminologyJsonImporterService/4.0', [
+            finalised                      : false,
+            terminologyName                : 'Complex Test Terminology',
+            folderId                       : folderId.toString(),
+            importAsNewDocumentationVersion: false,
+            importFile                     : [
+                fileType    : MimeType.JSON_API.name,
+                fileContents: loadTestFile('complexTerminologyForCodeSet').toList()
+            ]
+        ], MAP_ARG, true)
+        verifyResponse CREATED, response
+        String terminologyId = response.body().items[0].id
+
+        when:
+        POST('import/uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer/CodeSetJsonImporterService/4.0', [
+            finalised                      : false,
+            folderId                       : folderId.toString(),
+            importAsNewDocumentationVersion: false,
+            importFile                     : [
+                fileType    : MimeType.JSON_API.name,
+                fileContents: loadTestFile('complexCodeSet').toList()
+            ]
+        ])
+
+        then:
+        verifyResponse CREATED, response
+        String id = response.body().items[0].id
+
+        and:
+        id
+
+        cleanup:
+        cleanUpData(id)
+        DELETE("terminologies/${terminologyId}?permanent=true")
+    }
+
+    @PendingFeature(reason = 'ApiBadRequestException: Term retrieval for te:Complex Test Terminology|tm:CTT00: Complex Test Term 00 failed')
+    void 'IM07B : test import complex CodeSet XML'() {
+        given:
+        POST('terminologies/import/uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer/TerminologyXmlImporterService/4.0', [
+            finalised                      : false,
+            terminologyName                : 'Complex Test Terminology',
+            folderId                       : folderId.toString(),
+            importAsNewDocumentationVersion: false,
+            importFile                     : [
+                fileType    : MimeType.XML.name,
+                fileContents: loadTestFile('complexTerminologyForCodeSet', 'xml').toList()
+            ]
+        ], MAP_ARG, true)
+        verifyResponse CREATED, response
+        String terminologyId = response.body().items[0].id
+
+        when:
+        POST('import/uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer/CodeSetXmlImporterService/4.0', [
+            finalised                      : false,
+            folderId                       : folderId.toString(),
+            importAsNewDocumentationVersion: false,
+            importFile                     : [
+                fileType    : MimeType.XML.name,
+                fileContents: loadTestFile('complexCodeSet', 'xml').toList()
+            ]
+        ])
+
+        then:
+        verifyResponse CREATED, response
+        String id = response.body().items[0].id
+
+        and:
+        id
+
+        cleanup:
+        cleanUpData(id)
+        DELETE("terminologies/${terminologyId}?permanent=true")
+    }
+
+    @PendingFeature(reason = 'ApiBadRequestException: Term retrieval for te:Simple Test Terminology|tm:STT01: Simple Test Term 01 failed')
+    void 'IM08A : test import multiple CodeSets JSON'() {
+        given:
+        POST('terminologies/import/uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer/TerminologyJsonImporterService/4.0', [
+            finalised                      : false,
+            terminologyName                : 'Simple Test Terminology',
+            folderId                       : folderId.toString(),
+            importAsNewDocumentationVersion: false,
+            importFile                     : [
+                fileType    : MimeType.JSON_API.name,
+                fileContents: loadTestFile('simpleTerminologyForCodeSet').toList()
+            ]
+        ], MAP_ARG, true)
+        verifyResponse CREATED, response
+        String simpleTerminologyId = response.body().items[0].id
+
+        and:
+        POST('terminologies/import/uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer/TerminologyJsonImporterService/4.0', [
+            finalised                      : false,
+            terminologyName                : 'Complex Test Terminology',
+            folderId                       : folderId.toString(),
+            importAsNewDocumentationVersion: false,
+            importFile                     : [
+                fileType    : MimeType.JSON_API.name,
+                fileContents: loadTestFile('complexTerminologyForCodeSet').toList()
+            ]
+        ], MAP_ARG, true)
+        verifyResponse CREATED, response
+        String complexTerminologyId = response.body().items[0].id
+
+        when:
+        POST('import/uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer/CodeSetJsonImporterService/4.0', [
+            finalised                      : false,
+            folderId                       : folderId.toString(),
+            importAsNewDocumentationVersion: false,
+            importFile                     : [
+                fileType    : MimeType.JSON_API.name,
+                fileContents: loadTestFile('simpleAndComplexCodeSets').toList()
+            ]
+        ])
+
+        then:
+        verifyResponse CREATED, response
+        String id = response.body().items[0].id
+        String id2 = response.body().items[1].id
+
+        and:
+        id
+        id2
+
+        cleanup:
+        cleanUpData(id)
+        cleanUpData(id2)
+        DELETE("terminologies/${simpleTerminologyId}?permanent=true")
+        DELETE("terminologies/${complexTerminologyId}?permanent=true")
+    }
+
+    @PendingFeature(reason = 'ApiBadRequestException: Term retrieval for te:Simple Test Terminology|tm:STT01: Simple Test Term 01 failed')
+    void 'IM08B : test import multiple CodeSets XML'() {
+        given:
+        POST('terminologies/import/uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer/TerminologyXmlImporterService/4.0', [
+            finalised                      : false,
+            terminologyName                : 'Simple Test Terminology',
+            folderId                       : folderId.toString(),
+            importAsNewDocumentationVersion: false,
+            importFile                     : [
+                fileType    : MimeType.XML.name,
+                fileContents: loadTestFile('simpleTerminologyForCodeSet', 'xml').toList()
+            ]
+        ], MAP_ARG, true)
+        verifyResponse CREATED, response
+        String simpleTerminologyId = response.body().items[0].id
+
+        and:
+        POST('terminologies/import/uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer/TerminologyXmlImporterService/4.0', [
+            finalised                      : false,
+            terminologyName                : 'Complex Test Terminology',
+            folderId                       : folderId.toString(),
+            importAsNewDocumentationVersion: false,
+            importFile                     : [
+                fileType    : MimeType.XML.name,
+                fileContents: loadTestFile('complexTerminologyForCodeSet', 'xml').toList()
+            ]
+        ], MAP_ARG, true)
+        verifyResponse CREATED, response
+        String complexTerminologyId = response.body().items[0].id
+
+        when:
+        POST('import/uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer/CodeSetXmlImporterService/4.0', [
+            finalised                      : false,
+            folderId                       : folderId.toString(),
+            importAsNewDocumentationVersion: false,
+            importFile                     : [
+                fileType    : MimeType.XML.name,
+                fileContents: loadTestFile('simpleAndComplexCodeSets', 'xml').toList()
+            ]
+        ])
+
+        then:
+        verifyResponse CREATED, response
+        String id = response.body().items[0].id
+        String id2 = response.body().items[1].id
+
+        and:
+        id
+        id2
+
+        cleanup:
+        cleanUpData(id)
+        cleanUpData(id2)
+        DELETE("terminologies/${simpleTerminologyId}?permanent=true")
+        DELETE("terminologies/${complexTerminologyId}?permanent=true")
     }
 
     void 'CT01 : test getting the CodeSet(s) that a Term belongs to'() {
