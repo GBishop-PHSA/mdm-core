@@ -28,6 +28,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.facet.Rule
 import uk.ac.ox.softeng.maurodatamapper.core.facet.SemanticLink
 import uk.ac.ox.softeng.maurodatamapper.core.facet.SemanticLinkType
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
+import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.terminology.provider.exporter.CodeSetJsonExporterService
 import uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer.CodeSetJsonImporterService
@@ -57,6 +58,8 @@ import java.nio.file.Paths
 @Slf4j
 class CodeSetJsonImporterExporterServiceSpec extends BaseCodeSetIntegrationSpec implements JsonComparer {
 
+    private static final String CANNOT_IMPORT_EMPTY_CONTENT_CODE = 'JIS02'
+    private static final String CANNOT_IMPORT_JSON_CODE = 'JIS03'
     private static final String NO_CODESET_IDS_TO_EXPORT_CODE = 'CSEP01'
     private static final String SIMPLE_CODESET_FILENAME = 'bootstrappedSimpleCodeSet'
     private static final String SIMPLE_AND_COMPLEX_CODESETS_FILENAME = 'simpleAndComplexCodeSets'
@@ -190,9 +193,25 @@ class CodeSetJsonImporterExporterServiceSpec extends BaseCodeSetIntegrationSpec 
         codeSet
     }
 
+    List<CodeSet> importModels(byte[] bytes) {
+        // TODO: Validation errors, which seem to be non-issues, occur when checking and saving hence those are not performed here
+        importerService.importCodeSets(admin, bytes).collect {
+            it.folder = testFolder
+            it
+        }
+    }
+
     void confirmCodeSet(codeSet) {
         assert codeSet
         assert codeSet.createdBy == admin.emailAddress
+    }
+
+    List<CodeSet> clearExpectedDiffsFromModels(List<UUID> modelIds) {
+        modelIds.collect {
+            codeSetService.get(it).tap {
+                dateFinalised = null
+            }
+        }
     }
 
     void 'test that trying to export when specifying a null codeSetId fails with an exception'() {
@@ -632,34 +651,227 @@ class CodeSetJsonImporterExporterServiceSpec extends BaseCodeSetIntegrationSpec 
         cleanupParameters()
     }
 
-    void 'test import multiple CodeSets'() {
+    void 'test multi-import invalid CodeSet content'() {
+        expect:
+        importerService.canImportMultipleDomains()
+
+        when: 'given empty content'
+        importModels(''.bytes)
+
+        then:
+        ApiBadRequestException exception = thrown(ApiBadRequestException)
+        exception.errorCode == CANNOT_IMPORT_EMPTY_CONTENT_CODE
+
+        when: 'given an empty JSON map'
+        importModels('{}'.bytes)
+
+        then:
+        exception = thrown(ApiBadRequestException)
+        exception.errorCode == CANNOT_IMPORT_JSON_CODE
+
+        when: 'given neither models list or model map (backwards compatibility)'
+        importModels(loadTestFile('exportMetadataOnly'))
+
+        then:
+        exception = thrown(ApiBadRequestException)
+        exception.errorCode == CANNOT_IMPORT_JSON_CODE
+
+        when: 'given an empty model map (backwards compatibility)'
+        importModels(loadTestFile('emptyCodeSet'))
+
+        then:
+        exception = thrown(ApiBadRequestException)
+        exception.errorCode == CANNOT_IMPORT_JSON_CODE
+
+        when: 'given an empty models list'
+        importModels(loadTestFile('emptyCodeSetList'))
+
+        then:
+        exception = thrown(ApiBadRequestException)
+        exception.errorCode == CANNOT_IMPORT_JSON_CODE
+    }
+
+    void 'test multi-import invalid CodeSets'() {
         given:
         setupData()
 
         expect:
+        importerService.canImportMultipleDomains()
+
+        when: 'given an invalid model map (backwards compatibility)'
+        importModels(loadTestFile('invalidCodeSet'))
+
+        then:
+        ApiBadRequestException exception = thrown(ApiBadRequestException)
+        exception.errorCode == CANNOT_IMPORT_JSON_CODE
+
+        when: 'given a single invalid model'
+        importModels(loadTestFile('invalidCodeSetInList'))
+
+        then:
+        exception = thrown(ApiBadRequestException)
+        exception.errorCode == CANNOT_IMPORT_JSON_CODE
+
+        when: 'given multiple invalid models'
+        importModels(loadTestFile('invalidCodeSets'))
+
+        then:
+        exception = thrown(ApiBadRequestException)
+        exception.errorCode == CANNOT_IMPORT_JSON_CODE
+
+        // when: 'not given export metadata'
+        // importModels(loadTestFile('noExportMetadata'))
+        //
+        // then:
+        // exception = thrown(ApiBadRequestException)
+        // exception.errorCode == 'TODO'
+    }
+
+    void 'test multi-import single CodeSet (backwards compatibility)'() {
+        given:
+        setupData()
         CodeSet.count() == 2
+        List<CodeSet> codeSets = clearExpectedDiffsFromModels([simpleCodeSetId])
+
+        expect:
         importerService.canImportMultipleDomains()
 
         when:
-        List<CodeSet> codeSets = importerService.importCodeSets(admin, loadTestFile('simpleAndComplexCodeSets'))
+        List<CodeSet> imported = importModels(loadTestFile('bootstrappedSimpleCodeSet'))
 
         then:
-        codeSets
-        codeSets.size() == 2
+        imported
+        imported.size() == 1
 
         when:
-        ObjectDiff simpleDiff = codeSetService.getDiffForModels(simpleCodeSet, codeSets[0])
-        ObjectDiff complexDiff = codeSetService.getDiffForModels(complexCodeSet, codeSets[1])
+        ObjectDiff simpleDiff = codeSetService.getDiffForModels(codeSets.pop(), imported.pop())
 
         then:
-        !simpleDiff.objectsAreIdentical() // Expected diff failure on dateFinalised
-        !complexDiff.objectsAreIdentical()
+        simpleDiff.objectsAreIdentical()
+    }
 
-        simpleDiff.numberOfDiffs == 1
-        simpleDiff.diffs.find {it.fieldName == 'dateFinalised'}
+    void 'test multi-import single CodeSet'() {
+        given:
+        setupData()
+        CodeSet.count() == 2
+        List<CodeSet> codeSets = clearExpectedDiffsFromModels([simpleCodeSetId])
 
-        complexDiff.numberOfDiffs == 1
-        complexDiff.diffs.find {it.fieldName == 'dateFinalised'}
+        expect:
+        importerService.canImportMultipleDomains()
+
+        when:
+        List<CodeSet> imported = importModels(loadTestFile('simpleCodeSetInList'))
+
+        then:
+        imported
+        imported.size() == 1
+
+        when:
+        ObjectDiff simpleDiff = codeSetService.getDiffForModels(codeSets.pop(), imported.pop())
+
+        then:
+        simpleDiff.objectsAreIdentical()
+    }
+
+    void 'test multi-import multiple CodeSets'() {
+        given:
+        setupData()
+        CodeSet.count() == 2
+        List<CodeSet> codeSets = clearExpectedDiffsFromModels([simpleCodeSetId, complexCodeSetId])
+
+        expect:
+        importerService.canImportMultipleDomains()
+
+        when:
+        List<Terminology> imported = importModels(loadTestFile('simpleAndComplexCodeSets'))
+
+        then:
+        imported
+        imported.size() == 2
+
+        when:
+        ObjectDiff simpleDiff = codeSetService.getDiffForModels(codeSets[0], imported[0])
+        ObjectDiff complexDiff = codeSetService.getDiffForModels(codeSets[1], imported[1])
+
+        then:
+        simpleDiff.objectsAreIdentical()
+        complexDiff.objectsAreIdentical()
+    }
+
+    void 'test multi-import CodeSets with invalid models'() {
+        given:
+        setupData()
+        CodeSet.count() == 2
+        List<CodeSet> codeSets = clearExpectedDiffsFromModels([simpleCodeSetId, complexCodeSetId])
+
+        expect:
+        importerService.canImportMultipleDomains()
+
+        when:
+        List<CodeSet> imported = importModels(loadTestFile('simpleAndInvalidCodeSets'))
+
+        then:
+        imported
+        imported.size() == 1
+
+        when:
+        ObjectDiff simpleDiff = codeSetService.getDiffForModels(codeSets[0], imported.pop())
+
+        then:
+        simpleDiff.objectsAreIdentical()
+
+        when:
+        imported = importModels(loadTestFile('simpleComplexAndInvalidCodeSets'))
+
+        then:
+        imported
+        imported.size() == 2
+
+        when:
+        simpleDiff = codeSetService.getDiffForModels(codeSets[0], imported[0])
+        ObjectDiff complexDiff = codeSetService.getDiffForModels(codeSets[1], imported[1])
+
+        then:
+        simpleDiff.objectsAreIdentical()
+        complexDiff.objectsAreIdentical()
+    }
+
+    void 'test multi-import CodeSets with duplicates'() {
+        given:
+        setupData()
+        CodeSet.count() == 2
+        List<CodeSet> codeSets = clearExpectedDiffsFromModels([simpleCodeSetId, complexCodeSetId])
+
+        expect:
+        importerService.canImportMultipleDomains()
+
+        when:
+        List<CodeSet> imported = importModels(loadTestFile('simpleDuplicateCodeSets'))
+
+        then:
+        imported
+        imported.size() == 1
+
+        when:
+        ObjectDiff simpleDiff = codeSetService.getDiffForModels(codeSets[0], imported.pop())
+
+        then:
+        simpleDiff.objectsAreIdentical()
+
+        when:
+        imported = importModels(loadTestFile('simpleAndComplexDuplicateCodeSets'))
+
+        then:
+        imported
+        imported.size() == 2
+
+        when:
+        simpleDiff = codeSetService.getDiffForModels(codeSets[0], imported[0])
+        ObjectDiff complexDiff = codeSetService.getDiffForModels(codeSets[1], imported[1])
+
+        then:
+        simpleDiff.objectsAreIdentical()
+        complexDiff.objectsAreIdentical()
     }
 
     void 'test multi-export invalid CodeSets'() {
