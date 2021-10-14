@@ -19,7 +19,8 @@ package uk.ac.ox.softeng.maurodatamapper.authentication.apikey
 
 import uk.ac.ox.softeng.maurodatamapper.core.traits.controller.ResourcelessMdmController
 
-class ApiKeyController implements ResourcelessMdmController {
+class ApiKeyTestController implements ResourcelessMdmController {
+
     static responseFormats = ['json', 'xml']
 
     def test() {

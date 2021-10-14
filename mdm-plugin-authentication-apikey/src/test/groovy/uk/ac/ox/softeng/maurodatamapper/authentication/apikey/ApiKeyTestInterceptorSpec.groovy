@@ -17,10 +17,23 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.authentication.apikey
 
-class UrlMappings {
-    static mappings = {
-        group '/api', {
-            get '/testApiKey'(controller: 'apiKeyTest', action: 'test')
-        }
+import grails.testing.web.interceptor.InterceptorUnitTest
+import spock.lang.Specification
+
+class ApiKeyTestInterceptorSpec extends Specification implements InterceptorUnitTest<ApiKeyTestInterceptor> {
+
+    def setup() {
+    }
+
+    def cleanup() {
+
+    }
+
+    void "Test apiKey interceptor matching"() {
+        when:"A request matches the interceptor"
+        withRequest(controller:"apiKeyTest")
+
+        then:"The interceptor does match"
+        interceptor.doesMatch()
     }
 }
